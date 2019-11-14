@@ -57,7 +57,7 @@ curl(args.url)
   // 第三阶段，聚合内容
   .then(({ title, books }) => {
     console.info("整本书获取完毕！");
-    books = books.filter(({ content }) => content.length < args.minLength).sort(({ index: a }, { index: b }) => a - b).map(({ index, href, title, content }) => {
+    books = books.filter(({ content }) => content.length > args.minLength).sort(({ index: a }, { index: b }) => a - b).map(({ index, href, title, content }) => {
       return `
 ## ${index + 1} ${title}
 ${content}
