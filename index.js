@@ -16,15 +16,18 @@ const retry = (fn, ...args) => fn(...args)
   .catch(() => retry(fn, ...args));
 
 // 获取URL内容
-const curl = (url) => fetch(url, {
-  method: "GET",
-  headers: {
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-    "Accept-Language": "zh-CN,zh;q=0.8,en;q=0.6,zh-TW;q=0.4",
-    "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.81 Safari/537.36",
-    "x-forwarded-for": randomIp()
-  }
-}).then((res) => {
+const curl = (url) => Promise.race([
+  new Promise((resolve, reject) => setTimeout(reject, 5000)),
+  fetch(url, {
+    method: "GET",
+    headers: {
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+      "Accept-Language": "zh-CN,zh;q=0.8,en;q=0.6,zh-TW;q=0.4",
+      "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.81 Safari/537.36",
+      "x-forwarded-for": randomIp()
+    }
+  })
+]).then((res) => {
   if (res.status !== 200) {
     console.info(`[${red(res.status)}]:${blue(url)}请求失败！`);
     throw res;
