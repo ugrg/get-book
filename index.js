@@ -8,7 +8,7 @@ const { red, green, yellow, blue } = require("colors");
 const args = require("./lib/args");
 const randomIp = require("./lib/randomIP");
 const { clear, replace } = require("./config");
-console.info(args);
+
 const FETCH_OPTIONS = {
   method: "GET",
   headers: {
