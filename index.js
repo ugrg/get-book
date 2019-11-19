@@ -3,13 +3,20 @@ const fs = require("fs");
 const fetch = require("node-fetch").default;
 const cheerio = require("cheerio");
 const ProgressBar = require("progress");
+const { decode } = require("iconv-lite");
 const Pool = require("./lib/Pool");
 const { red, green, yellow, blue } = require("colors");
 const args = require("./lib/args");
 const randomIp = require("./lib/randomIP");
 const { clear, replace } = require("./config");
 
-const FETCH_OPTIONS = {
+// 无限重试
+const retry = (fn, ...args) => fn(...args)
+  .catch(() => new Promise((resolve, reject) => setTimeout(reject, args.sleep)))
+  .catch(() => retry(fn, ...args));
+
+// 获取URL内容
+const curl = (url) => fetch(url, {
   method: "GET",
   headers: {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
@@ -17,14 +24,15 @@ const FETCH_OPTIONS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.81 Safari/537.36",
     "x-forwarded-for": randomIp()
   }
-};
-// 无限重试
-const retry = (fn, ...args) => fn(...args).catch(() => retry(fn, args));
-// 获取URL内容
-const curl = (url) => fetch(url, FETCH_OPTIONS).then((res) => {
-  if (res.status === 200) return res.text();
-  console.info(`[${red(res.state)}]:${blue(url)}请求失败！`);
-  throw res;
+}).then((res) => {
+  if (res.status !== 200) {
+    console.info(`[${red(res.status)}]:${blue(url)}请求失败！`);
+    throw res;
+  }
+  return res.arrayBuffer();
+}).then((buffer) => {
+  buffer = Buffer.from(buffer);
+  return args.gbk ? decode(buffer, "gbk") : buffer.toString();
 });
 
 // 第一阶段，获取书籍目录
