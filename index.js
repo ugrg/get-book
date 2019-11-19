@@ -1,6 +1,7 @@
 const url = require("url");
 const fs = require("fs");
 const fetch = require("node-fetch").default;
+const iconv = require("iconv-lite");
 const cheerio = require("cheerio");
 const ProgressBar = require("progress");
 const Pool = require("./lib/Pool");
@@ -8,7 +9,6 @@ const { red, green, yellow, blue } = require("colors");
 const args = require("./lib/args");
 const randomIp = require("./lib/randomIP");
 const { clear, replace } = require("./config");
-console.info(args);
 const FETCH_OPTIONS = {
   method: "GET",
   headers: {
@@ -19,12 +19,17 @@ const FETCH_OPTIONS = {
   }
 };
 // 无限重试
-const retry = (fn, ...args) => fn(...args).catch(() => retry(fn, args));
+const retry = (fn, ...args) => fn(...args)
+  .catch(() => new Promise((resolve, reject) => setTimeout(reject, args.sleep)))
+  .catch(() => retry(fn, ...args));
 // 获取URL内容
 const curl = (url) => fetch(url, FETCH_OPTIONS).then((res) => {
+  if (args.gbk && res.status === 200) return res.arrayBuffer();
   if (res.status === 200) return res.text();
-  console.info(`[${red(res.state)}]:${blue(url)}请求失败！`);
+  console.info(`[${red(res.status)}]:${blue(url)}请求失败！`);
   throw res;
+}).then(html => {
+  return args.gbk ? iconv.decode(Buffer.from(html), "gbk") : html;
 });
 
 // 第一阶段，获取书籍目录
@@ -48,7 +53,7 @@ curl(args.url)
   .then(({ title, catalogue }) => {
     const pool = new Pool(args.limit, args.sleep);
     console.info(`《${green(title)}》正在下载入中：`);
-    const bar = new ProgressBar(`:bar :current/:total`, { total: catalogue.length, complete: green("=") });
+    const bar = new ProgressBar(`:bar :current/:total`, { total: catalogue.length, complete: green("="), width: 100 });
     const books = catalogue.map(({ index, href, title }) =>
       pool.add(() => retry(curl, href)).finally(() => bar.tick())
         .then(html => ({ index, href, title, content: cheerio.load(html)(args.content).text() })));
