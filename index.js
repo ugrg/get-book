@@ -1,35 +1,41 @@
 const url = require("url");
 const fs = require("fs");
 const fetch = require("node-fetch").default;
-const iconv = require("iconv-lite");
 const cheerio = require("cheerio");
 const ProgressBar = require("progress");
+const { decode } = require("iconv-lite");
 const Pool = require("./lib/Pool");
 const { red, green, yellow, blue } = require("colors");
 const args = require("./lib/args");
 const randomIp = require("./lib/randomIP");
 const { clear, replace } = require("./config");
-const FETCH_OPTIONS = {
-  method: "GET",
-  headers: {
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-    "Accept-Language": "zh-CN,zh;q=0.8,en;q=0.6,zh-TW;q=0.4",
-    "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.81 Safari/537.36",
-    "x-forwarded-for": randomIp()
-  }
-};
+
 // 无限重试
 const retry = (fn, ...args) => fn(...args)
   .catch(() => new Promise((resolve, reject) => setTimeout(reject, args.sleep)))
   .catch(() => retry(fn, ...args));
+
 // 获取URL内容
-const curl = (url) => fetch(url, FETCH_OPTIONS).then((res) => {
-  if (args.gbk && res.status === 200) return res.arrayBuffer();
-  if (res.status === 200) return res.text();
-  console.info(`[${red(res.status)}]:${blue(url)}请求失败！`);
-  throw res;
-}).then(html => {
-  return args.gbk ? iconv.decode(Buffer.from(html), "gbk") : html;
+const curl = (url) => Promise.race([
+  new Promise((resolve, reject) => setTimeout(reject, 5000)),
+  fetch(url, {
+    method: "GET",
+    headers: {
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+      "Accept-Language": "zh-CN,zh;q=0.8,en;q=0.6,zh-TW;q=0.4",
+      "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.81 Safari/537.36",
+      "x-forwarded-for": randomIp()
+    }
+  })
+]).then((res) => {
+  if (res.status !== 200) {
+    console.info(`[${red(res.status)}]:${blue(url)}请求失败！`);
+    throw res;
+  }
+  return res.arrayBuffer();
+}).then((buffer) => {
+  buffer = Buffer.from(buffer);
+  return args.gbk ? decode(buffer, "gbk") : buffer.toString();
 });
 
 // 第一阶段，获取书籍目录
@@ -39,11 +45,7 @@ curl(args.url)
     const title = $(args.title).text();
     const catalogue = $(args.catalogue).map((index, a) => {
       a = $(a);
-      return {
-        index,
-        href: url.resolve(args.url, $(a).attr("href")),
-        title: $(a).text()
-      };
+      return { index, href: url.resolve(args.url, $(a).attr("href")), title: $(a).text() };
     });
     console.info(`已完成对${blue(args.url)}的加载！`);
     console.info(`获得书本《${yellow(title)}》，共${green(catalogue.length)}章！`);
