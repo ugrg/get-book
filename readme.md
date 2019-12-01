@@ -6,11 +6,12 @@
 - -V, --version              获取当前版本信息!
 - -u, --url <string>         读取源地址!
 - -t, --title <string>       文档中标题的选择器。 (default: "h1")
-- -l, --catalogue <string>   章节列表选择器。 (default: "#list a")
+- -a, --catalogue <string>   章节列表选择器。 (default: "#list a")
 - -c, --content <string>     章节列表选择器。 (default: "#content")
 - -l, --limit <number>       并发请求数量。 (default: 5)
-- -s, --sleep <number>       每个请求的间隔时间。 (default: 0)
+- -s, --sleep <number>       每个请求的间隔时间。 (default: 1000)
 - -m, --min-length <number>  正文最小长度（小于这个长度将会被认为是作者的废话从而丢弃掉）。 (default: 1000)
+- --gbk                      源地址是否为GBK
 - -h, --help                 获取帮助信息!
 
 

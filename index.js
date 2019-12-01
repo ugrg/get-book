@@ -68,12 +68,12 @@ curl(args.url)
   // 第三阶段，聚合内容
   .then(({ title, books }) => {
     console.info("整本书获取完毕！");
-    books = books.filter(({ content }) => content.length > args.minLength).sort(({ index: a }, { index: b }) => a - b).map(({ index, href, title, content }) => {
-      return `
+    books = books.filter(({ content }) => content.length > args.minLength)
+      .sort(({ index: a }, { index: b }) => a - b)
+      .map(({ index, href, title, content }) => `
 ## ${index + 1} ${title}
 ${content}
-`;
-    }).join("----------------------------------------------------------------");
+`).join("----------------------------------------------------------------");
     books = clear.reduce((c, reg) => c.replace(reg, ""), books);
     books = Object.entries(replace).reduce((book, [f, t]) => book.replace(f, t), books);
     console.info(`《${title}》整理完成，共${books.length}字`);
