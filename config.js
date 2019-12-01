@@ -58,7 +58,9 @@ const replace = {
   "yù": "运",
   "yīn": "阴",
   "yín": "淫",
-  "zhōngyāng": "中央"
+  "zhōngyāng": "中央",
+  "se": "色",
+  "nv": "女"
 };
 
 module.exports = { clear, replace };

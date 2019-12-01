@@ -45,11 +45,7 @@ curl(args.url)
     const title = $(args.title).text();
     const catalogue = $(args.catalogue).map((index, a) => {
       a = $(a);
-      return {
-        index,
-        href: url.resolve(args.url, $(a).attr("href")),
-        title: $(a).text()
-      };
+      return { index, href: url.resolve(args.url, $(a).attr("href")), title: $(a).text() };
     });
     console.info(`已完成对${blue(args.url)}的加载！`);
     console.info(`获得书本《${yellow(title)}》，共${green(catalogue.length)}章！`);
@@ -59,7 +55,7 @@ curl(args.url)
   .then(({ title, catalogue }) => {
     const pool = new Pool(args.limit, args.sleep);
     console.info(`《${green(title)}》正在下载入中：`);
-    const bar = new ProgressBar(`:bar :current/:total`, { total: catalogue.length, complete: green("=") });
+    const bar = new ProgressBar(`:bar :current/:total`, { total: catalogue.length, complete: green("="), width: 100 });
     const books = catalogue.map(({ index, href, title }) =>
       pool.add(() => retry(curl, href)).finally(() => bar.tick())
         .then(html => ({ index, href, title, content: cheerio.load(html)(args.content).text() })));
