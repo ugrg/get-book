@@ -108,6 +108,19 @@ entities@^2.0.0:
   resolved "https://registry.yarnpkg.com/entities/-/entities-2.0.0.tgz#68d6084cab1b079767540d80e56a39b423e4abf4"
   integrity sha512-D9f7V0JSRwIxlRI2mjMqufDrRDnx8p+eEOz7aUM9SuvF8gsBzra0/6tbjl1m8eQHrZlYj6PxqE00hZ1SAIKPLw==
 
+es6-denodeify@^0.1.1:
+  version "0.1.5"
+  resolved "https://registry.npm.taobao.org/es6-denodeify/download/es6-denodeify-0.1.5.tgz#31d4d5fe9c5503e125460439310e16a2a3f39c1f"
+  integrity sha1-MdTV/pxVA+ElRgQ5MQ4WoqPznB8=
+
+fetch-cookie@^0.7.3:
+  version "0.7.3"
+  resolved "https://registry.npm.taobao.org/fetch-cookie/download/fetch-cookie-0.7.3.tgz#b8d023f421dd2b2f4a0eca9cd7318a967ed4eed8"
+  integrity sha1-uNAj9CHdKy9KDsqc1zGKln7U7tg=
+  dependencies:
+    es6-denodeify "^0.1.1"
+    tough-cookie "^2.3.3"
+
 htmlparser2@^3.9.1:
   version "3.10.1"
   resolved "https://registry.yarnpkg.com/htmlparser2/-/htmlparser2-3.10.1.tgz#bd679dc3f59897b6a34bb10749c855bb53a9392f"
@@ -161,6 +174,16 @@ progress@^2.0.3:
   resolved "https://registry.yarnpkg.com/progress/-/progress-2.0.3.tgz#7e8cf8d8f5b8f239c1bc68beb4eb78567d572ef8"
   integrity sha512-7PiHtLll5LdnKIMw100I+8xJXR5gW2QwWYkT6iJva0bXitZKa/XMrSbdmg3r2Xnaidz9Qumd0VPaMrZlF9V9sA==
 
+psl@^1.1.28:
+  version "1.5.0"
+  resolved "https://registry.npm.taobao.org/psl/download/psl-1.5.0.tgz#47fd1292def7fdb1e138cd78afa8814cebcf7b13"
+  integrity sha1-R/0Skt73/bHhOM14r6iBTOvPexM=
+
+punycode@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.npm.taobao.org/punycode/download/punycode-2.1.1.tgz#b58b010ac40c22c5657616c8d2c2c02c7bf479ec"
+  integrity sha1-tYsBCsQMIsVldhbI0sLALHv0eew=
+
 readable-stream@^3.1.1:
   version "3.4.0"
   resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-3.4.0.tgz#a51c26754658e0a3c21dbf59163bd45ba6f447fc"
@@ -186,6 +209,14 @@ string_decoder@^1.1.1:
   integrity sha512-hkRX8U1WjJFd8LsDJ2yQ/wWWxaopEsABU1XfkM8A+j0+85JAGppt16cr1Whg6KIbb4okU6Mql6BOj+uup/wKeA==
   dependencies:
     safe-buffer "~5.2.0"
+
+tough-cookie@^2.3.3:
+  version "2.5.0"
+  resolved "https://registry.npm.taobao.org/tough-cookie/download/tough-cookie-2.5.0.tgz#cd9fb2a0aa1d5a12b473bd9fb96fa3dcff65ade2"
+  integrity sha1-zZ+yoKodWhK0c72fuW+j3P9lreI=
+  dependencies:
+    psl "^1.1.28"
+    punycode "^2.1.1"
 
 util-deprecate@^1.0.1:
   version "1.0.2"

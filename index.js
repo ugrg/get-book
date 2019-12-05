@@ -1,6 +1,7 @@
 const url = require("url");
 const fs = require("fs");
-const fetch = require("node-fetch").default;
+const nodeFetch = require("node-fetch").default;
+const fetch = require("fetch-cookie")(nodeFetch);
 const cheerio = require("cheerio");
 const ProgressBar = require("progress");
 const { decode } = require("iconv-lite");
