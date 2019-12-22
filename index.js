@@ -1,7 +1,8 @@
 const url = require("url");
 const fs = require("fs");
-const nodeFetch = require("node-fetch").default;
-const fetch = require("fetch-cookie")(nodeFetch);
+const fetch = require("node-fetch").default;
+// const nodeFetch = require("node-fetch").default;
+// const fetch = require("fetch-cookie")(nodeFetch);
 const cheerio = require("cheerio");
 const ProgressBar = require("progress");
 const { decode } = require("iconv-lite");
@@ -12,9 +13,9 @@ const randomIp = require("./lib/randomIP");
 const { clear, replace } = require("./config");
 
 // 无限重试
-const retry = (fn, ...args) => fn(...args)
+const retry = (fn, ..._args_) => fn(..._args_)
   .catch(() => new Promise((resolve, reject) => setTimeout(reject, args.sleep)))
-  .catch(() => retry(fn, ...args));
+  .catch(() => retry(fn, ..._args_));
 
 // 获取URL内容
 const curl = (url) => Promise.race([
@@ -24,13 +25,15 @@ const curl = (url) => Promise.race([
     headers: {
       "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
       "Accept-Language": "zh-CN,zh;q=0.8,en;q=0.6,zh-TW;q=0.4",
-      "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.81 Safari/537.36",
+      "referer": args.url,
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36",
       "x-forwarded-for": randomIp()
     }
   })
 ]).then((res) => {
   if (res.status !== 200) {
-    console.info(`[${red(res.status)}]:${blue(url)}请求失败！`);
+    const now = new Date();
+    console.info(`[${("00" + now.getMinutes()).slice(-2)}:${("00" + now.getSeconds()).slice(-2)}][${red(res.status)}]:${blue(url)}请求失败！`);
     throw res;
   }
   return res.arrayBuffer();
