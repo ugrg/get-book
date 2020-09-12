@@ -14,7 +14,7 @@
     "commander": "^4.0.0",
     "fetch-cookie": "^0.7.3",
     "iconv-lite": "^0.5.0",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "progress": "^2.0.3"
   }
 }
