@@ -1,16 +1,16 @@
-const url = require("url");
-const fs = require("fs");
-const fetch = require("node-fetch").default;
+const url = require('url');
+const fs = require('fs');
+const fetch = require('node-fetch').default;
 // const nodeFetch = require("node-fetch").default;
 // const fetch = require("fetch-cookie")(nodeFetch);
-const cheerio = require("cheerio");
-const ProgressBar = require("progress");
-const { decode } = require("iconv-lite");
-const Pool = require("./lib/Pool");
-const { red, green, yellow, blue } = require("colors");
-const args = require("./lib/args");
-const randomIp = require("./lib/randomIP");
-const { clear, replace } = require("./config");
+const cheerio = require('cheerio');
+const ProgressBar = require('progress');
+const { decode } = require('iconv-lite');
+const Pool = require('./lib/Pool');
+const { red, green, yellow, blue } = require('colors');
+const args = require('./lib/args');
+const randomIp = require('./lib/randomIP');
+const { clear, replace } = require('./config');
 
 // 无限重试
 const retry = (fn, ..._args_) => fn(..._args_)
@@ -21,25 +21,25 @@ const retry = (fn, ..._args_) => fn(..._args_)
 const curl = (url) => Promise.race([
   new Promise((resolve, reject) => setTimeout(reject, 5000)),
   fetch(url, {
-    method: "GET",
+    method: 'GET',
     headers: {
-      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-      "Accept-Language": "zh-CN,zh;q=0.8,en;q=0.6,zh-TW;q=0.4",
-      "referer": args.url,
-      "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36",
-      "x-forwarded-for": randomIp()
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+      'Accept-Language': 'zh-CN,zh;q=0.8,en;q=0.6,zh-TW;q=0.4',
+      'referer': args.url,
+      'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36',
+      'x-forwarded-for': randomIp()
     }
   })
 ]).then((res) => {
   if (res.status !== 200) {
     const now = new Date();
-    console.info(`[${("00" + now.getMinutes()).slice(-2)}:${("00" + now.getSeconds()).slice(-2)}][${red(res.status)}]:${blue(url)}请求失败！`);
+    console.info(`[${('00' + now.getMinutes()).slice(-2)}:${('00' + now.getSeconds()).slice(-2)}][${red(res.status)}]:${blue(url)}请求失败！`);
     throw res;
   }
   return res.arrayBuffer();
 }).then((buffer) => {
   buffer = Buffer.from(buffer);
-  return args.gbk ? decode(buffer, "gbk") : buffer.toString();
+  return args.gbk ? decode(buffer, 'gbk') : buffer.toString();
 });
 
 // 第一阶段，获取书籍目录
@@ -49,7 +49,7 @@ curl(args.url)
     const title = $(args.title).text();
     const catalogue = $(args.catalogue).map((index, a) => {
       a = $(a);
-      return { index, href: url.resolve(args.url, $(a).attr("href")), title: $(a).text() };
+      return { index, href: url.resolve(args.url, $(a).attr('href')), title: $(a).text() };
     });
     console.info(`已完成对${blue(args.url)}的加载！`);
     console.info(`获得书本《${yellow(title)}》，共${green(catalogue.length)}章！`);
@@ -59,7 +59,7 @@ curl(args.url)
   .then(({ title, catalogue }) => {
     const pool = new Pool(args.limit, args.sleep);
     console.info(`《${green(title)}》正在下载入中：`);
-    const bar = new ProgressBar(`:bar :current/:total`, { total: catalogue.length, complete: green("="), width: 100 });
+    const bar = new ProgressBar(`:bar :current/:total`, { total: catalogue.length, complete: green('='), width: 100 });
     const books = catalogue.map(({ index, href, title }) =>
       pool.add(() => retry(curl, href)).finally(() => bar.tick())
         .then(html => ({ index, href, title, content: cheerio.load(html)(args.content).text() })));
@@ -67,21 +67,21 @@ curl(args.url)
   })
   // 第三阶段，聚合内容
   .then(({ title, books }) => {
-    console.info("整本书获取完毕！");
+    console.info('整本书获取完毕！');
     books = books.filter(({ content }) => content.length > args.minLength)
       .sort(({ index: a }, { index: b }) => a - b)
       .map(({ index, href, title, content }) => `
 ## ${index + 1} ${title}
 ${content}
-`).join("----------------------------------------------------------------");
-    books = clear.reduce((c, reg) => c.replace(reg, ""), books);
+`).join('----------------------------------------------------------------');
+    books = clear.reduce((c, reg) => c.replace(reg, ''), books);
     books = Object.entries(replace).reduce((book, [f, t]) => book.replace(f, t), books);
     console.info(`《${title}》整理完成，共${books.length}字`);
     return { title, books };
   })
   //  第四阶段，输出到磁盘
   .then(({ title, books }) => {
-    fs.writeFile(`./book/${title}.txt`, books, "utf-8", (err) => {
+    fs.writeFile(`./book/${title}.txt`, books, 'utf-8', (err) => {
       if (err) return console.info(err.message);
       console.info(`《${title}》存档完成！`);
     });
