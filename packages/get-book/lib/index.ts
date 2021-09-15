@@ -1,19 +1,24 @@
 import conf from './conf';
-import { get } from './http';
-import { URL, resolve } from 'url';
+import { httpsGet as get } from './http';
+import { resolve } from 'url';
 import { load } from 'cheerio';
 import { blue, green, yellow } from 'chalk';
-import Pool from './Pool';
 import ProgressBar from 'progress';
+import Arrange from './Arrange';
+import save from './save';
 
-const sleep = () => new Promise(resolve => setTimeout(resolve, conf.sleep));
+let be = 1;
+const sleep = () => new Promise(resolve => setTimeout(resolve, conf.sleep * be));
 
 async function curl (...args: Parameters<typeof get>): Promise<string> {
   let res: string | null = null;
   while (res === null) {
     try {
       res = await get(...args);
+      be = 0.9 * be;
     } catch (e) {
+      console.error(`\n获取{${args[0]}}失败,error is ${e}，准备重试`);
+      be = 1.5 * be;
       await sleep();
     }
   }
@@ -26,11 +31,10 @@ interface Chapter {
   title: string
 }
 
-const { host, protocol } = new URL(conf.url);
-
 // 第一阶段，获取书籍目录
 async function getCatalogue () {
-  const html = await curl(conf.url, { Host: host });
+  console.info(JSON.stringify(conf, null, 2));
+  const html = await curl(conf.url);
   const $ = load(html);
   const title = $(conf.title).text();
   const catalogue: Chapter[] = Array.from($(conf.catalogue).map((index, a) => {
@@ -44,15 +48,16 @@ async function getCatalogue () {
 }
 
 async function getBook (catalogue: Chapter[], bar: ProgressBar) {
-  const pool = new Pool(conf.limit, conf.sleep);
-  const books = catalogue.map(async ({ index, href, title }) => {
-    const html = await pool.add(
-      () => curl(href, { referer: conf.url, Host: host })
-    ).finally(() => bar.tick());
+  const books = [];
+  for (const i in catalogue) {
+    const { index, href, title } = catalogue[i];
+    const html = await curl(href, { referer: conf.url });
+    bar.tick();
     const content = load(html);
-    return { index, title, content };
-  });
-  return Promise.all(books);
+    books.push({ index, title, content });
+    await sleep();
+  }
+  return books;
 }
 
 async function main () {
@@ -61,8 +66,15 @@ async function main () {
   const bar = new ProgressBar(`:bar :current/:total`, { total: catalogue.length, complete: green('='), width: 100 });
   const books = await getBook(catalogue, bar);
   console.info('整本书获取完毕！');
-  books.filter(({ content }) => content.length > conf.minLength)
-    .sort(({ index: a }, { index: b }) => a - b);
+  return {
+    title,
+    content: books.filter(({ content }) => content.length > conf.minLength)
+      .sort(({ index: a }, { index: b }) => a - b)
+      .map(({ content, title, index }) => `
+## ${index + 1} ${title}
+${content}
+    `).join('---------------------------------------------------------------')
+  };
 }
 
-main().catch();
+main().then(Arrange).then(save).catch();

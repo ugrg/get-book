@@ -4,6 +4,9 @@
   "main": "es/index.js",
   "types": "lib/index.ts",
   "license": "MIT",
+  "scripts": {
+    "test": "ts-node lib/index.ts -u https://www.biquwx.la/1_1055/"
+  },
   "devDependencies": {
     "@types/node": "^16.7.8",
     "@types/progress": "^2.0.5",
@@ -15,6 +18,7 @@
     "cheerio": "^1.0.0-rc.10",
     "commander": "^8.1.0",
     "iconv-lite": "^0.6.3",
-    "progress": "^2.0.3"
+    "progress": "^2.0.3",
+    "tslib": "^2.3.1"
   }
 }
