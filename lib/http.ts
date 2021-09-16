@@ -3,8 +3,6 @@ import { get as httpsGet, Agent as HttpsAgent } from 'https';
 import { gunzipSync } from 'zlib';
 import { decode } from 'iconv-lite';
 
-const httpsAgent = new HttpsAgent();
-
 const handles = {
   'http:': { get: httpGet, agent: new HttpAgent() },
   'https:': { get: httpsGet, agent: new HttpsAgent() }

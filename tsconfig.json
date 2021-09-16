@@ -17,7 +17,8 @@
     // "declarationMap": true,                      /* 为每个相应的 ".d.ts" 文件生成源映射。 */
     // "sourceMap": true,                           /* 生成相应的 ".map" 文件。 */
     // "outFile": "./",                             /* 连接输出并将其发出到单个文件。 */
-    // "outDir": "./",                              /* 将输出结构重定向到目录。 */
+    "outDir": "es",
+    /* 将输出结构重定向到目录。 */
     // "rootDir": "./",                             /* 指定输入文件的根目录。与 --outDir 一起用于控制输出目录结构。 */
     // "composite": true,                           /* 启用项目编译 */
     // "tsBuildInfoFile": "./",                     /* 指定用于存储增量编译信息的文件 */
@@ -78,5 +79,8 @@
     /* 实验性选项 */
     // "experimentalDecorators": true,              /* 对 ES7 修饰器启用实验支持。 */
     // "emitDecoratorMetadata": true,               /* 对发出修饰器的类型元数据启用实验支持。 */
-  }
+  },
+  "include": [
+    "lib"
+  ]
 }
