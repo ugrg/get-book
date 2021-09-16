@@ -1,29 +1,11 @@
+#!/usr/bin/env node
 import conf from './conf';
-import { httpsGet as get } from './http';
 import { resolve } from 'url';
 import { load } from 'cheerio';
-import { blue, green, yellow } from 'chalk';
-import ProgressBar from 'progress';
+import { blue, green, yellow, red } from 'chalk';
 import Arrange from './Arrange';
 import save from './save';
-
-let be = 1;
-const sleep = () => new Promise(resolve => setTimeout(resolve, conf.sleep * be));
-
-async function curl (...args: Parameters<typeof get>): Promise<string> {
-  let res: string | null = null;
-  while (res === null) {
-    try {
-      res = await get(...args);
-      be = 0.9 * be;
-    } catch (e) {
-      console.error(`\n获取{${args[0]}}失败,error is ${e}，准备重试`);
-      be = 1.5 * be;
-      await sleep();
-    }
-  }
-  return res;
-}
+import curl from './curl';
 
 interface Chapter {
   index: number,
@@ -33,7 +15,6 @@ interface Chapter {
 
 // 第一阶段，获取书籍目录
 async function getCatalogue () {
-  console.info(JSON.stringify(conf, null, 2));
   const html = await curl(conf.url);
   const $ = load(html);
   const title = $(conf.title).text();
@@ -47,15 +28,36 @@ async function getCatalogue () {
   return { title, catalogue };
 }
 
-async function getBook (catalogue: Chapter[], bar: ProgressBar) {
+const delayStr = (start: number, n: number, count: number) => {
+  let delay = Math.floor((new Date().valueOf() - start.valueOf()) * (count - n) / (n * 1000));
+  const ss = delay % 60;
+  delay = (delay - ss) / 60;
+  const mm = delay % 60;
+  delay = (delay - mm) / 60;
+  const hh = delay % 24;
+  delay = (delay - hh) / 24;
+  const dd = delay / 24;
+  return [[dd, '天'], [hh, '小时'], [mm, '分'], [ss, '秒']].filter(([r]) => r).reduce<string>(
+    (res, [p, d]) => res + p + d, ''
+  );
+};
+
+async function getBook (catalogue: Chapter[]) {
   const books = [];
-  for (const i in catalogue) {
+  const start = new Date().valueOf();
+  for (let i = 1; i <= catalogue.length; i++) {
     const { index, href, title } = catalogue[i];
-    const html = await curl(href, { referer: conf.url });
-    bar.tick();
-    const content = load(html);
-    books.push({ index, title, content });
-    await sleep();
+    try {
+      const html = await curl(href, { referer: conf.url });
+      const content = load(html)(conf.content).text();
+      console.info(`第${i}章《${blue(title)}》下载入完成, 本章共${green(content.length)}字，预计还需要${
+        green(delayStr(start, i, content.length))
+      }完成。`);
+      books.push({ index, title, content });
+    } catch (e) {
+      console.info(`第${i}章 ${title} 获取失败, 计划等待${red((e as unknown as number).toString().slice(0, 4))}s后重试`);
+      i--;
+    }
   }
   return books;
 }
@@ -63,8 +65,7 @@ async function getBook (catalogue: Chapter[], bar: ProgressBar) {
 async function main () {
   const { title, catalogue } = await getCatalogue();
   console.info(`《${green(title)}》正在下载入中：`);
-  const bar = new ProgressBar(`:bar :current/:total`, { total: catalogue.length, complete: green('='), width: 100 });
-  const books = await getBook(catalogue, bar);
+  const books = await getBook(catalogue);
   console.info('整本书获取完毕！');
   return {
     title,
