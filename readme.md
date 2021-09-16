@@ -16,7 +16,7 @@
 $ yarn start -u http://www.xbiquge.la/7/7877/
 ```
 
-#update
+# update
 ## 2.0.0
 本次更新，使用TS全部重写了这个模块。主要有以下几个改动。
 1. 获取数据的包从原来的node-fetch，改成了由node自己的http.get完成，依赖库缩减。
