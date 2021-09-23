@@ -52,7 +52,7 @@ async function getBook (catalogue: Chapter[], bookTitle: string) {
   await promises.mkdir(join(TEMP, bookTitle)).catch(() => null);
   for (let i = 1; i <= catalogue.length; i++) {
     const { index, href, title } = catalogue[i - 1];
-    const cacheFileName = join(TEMP, bookTitle, `${title}.html`);
+    const cacheFileName = join(TEMP, bookTitle, `${title}.html`).replace(/[\n\t]/g, '');
     let html = '';
     try {
       if (!existsSync(cacheFileName)) {
