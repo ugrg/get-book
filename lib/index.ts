@@ -20,11 +20,16 @@ async function getCatalogue () {
   const html = await curl(conf.url);
   const $ = load(html);
   const title = $(conf.title).text();
+  const cache = new Set<string>();
   const catalogue: Chapter[] = Array.from($(conf.catalogue).map((index: number, a) => {
     const $a = $(a);
     const href = resolve(conf.url, $a.attr('href')!);
     return { index, href, title: $a.text() };
-  }));
+  })).reverse().filter(({ href }) => {
+    if (cache.has(href)) return false;
+    cache.add(href);
+    return true;
+  }).reverse();
   console.info(`已完成对${blue(conf.url)}的加载！`);
   console.info(`获得书本《${yellow(title)}》，共${green(catalogue.length)}章！`);
   return { title, catalogue };
