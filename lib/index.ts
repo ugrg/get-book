@@ -1,11 +1,13 @@
 #!/usr/bin/env node
-import conf from './conf';
-import { resolve } from 'url';
+import { blue, green, red, yellow } from 'chalk';
 import { load } from 'cheerio';
-import { blue, green, yellow, red } from 'chalk';
+import { existsSync, promises } from 'fs';
+import { join } from 'path';
+import { resolve } from 'url';
 import Arrange from './Arrange';
-import save from './save';
+import conf from './conf';
 import curl from './curl';
+import save from './save';
 
 interface Chapter {
   index: number,
@@ -18,7 +20,7 @@ async function getCatalogue () {
   const html = await curl(conf.url);
   const $ = load(html);
   const title = $(conf.title).text();
-  const catalogue: Chapter[] = Array.from($(conf.catalogue).map((index, a) => {
+  const catalogue: Chapter[] = Array.from($(conf.catalogue).map((index: number, a) => {
     const $a = $(a);
     const href = resolve(conf.url, $a.attr('href')!);
     return { index, href, title: $a.text() };
@@ -41,17 +43,28 @@ const delayStr = (start: number, n: number, count: number) => {
     (res, [p, d]) => res + p + d, ''
   );
 };
+const TEMP = process.env.TEMP!;
 
-async function getBook (catalogue: Chapter[]) {
+async function getBook (catalogue: Chapter[], bookTitle: string) {
   const books = [];
   const start = new Date().valueOf();
+  let cache = 0;
+  await promises.mkdir(join(TEMP, bookTitle)).catch(() => null);
   for (let i = 1; i <= catalogue.length; i++) {
-    const { index, href, title } = catalogue[i];
+    const { index, href, title } = catalogue[i - 1];
+    const cacheFileName = join(TEMP, bookTitle, `${title}.html`);
+    let html = '';
     try {
-      const html = await curl(href, { referer: conf.url });
+      if (!existsSync(cacheFileName)) {
+        html = await curl(href, { referer: conf.url });
+        await promises.writeFile(cacheFileName, html, 'utf-8');
+      } else {
+        html = await promises.readFile(cacheFileName, 'utf-8');
+        cache++;
+      }
       const content = load(html)(conf.content).text();
       console.info(`第${i}章《${blue(title)}》下载入完成, 本章共${green(content.length)}字，预计还需要${
-        green(delayStr(start, i, content.length))
+        green(delayStr(start, i - 1 - cache, catalogue.length - cache))
       }完成。`);
       books.push({ index, title, content });
     } catch (e) {
@@ -65,7 +78,7 @@ async function getBook (catalogue: Chapter[]) {
 async function main () {
   const { title, catalogue } = await getCatalogue();
   console.info(`《${green(title)}》正在下载入中：`);
-  const books = await getBook(catalogue);
+  const books = await getBook(catalogue, title);
   console.info('整本书获取完毕！');
   return {
     title,

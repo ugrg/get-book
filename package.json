@@ -13,7 +13,8 @@
     "get-book": "es/index.js"
   },
   "scripts": {
-    "start": "ts-node lib/index.ts"
+    "start": "ts-node lib/index.ts",
+    "run": "node es/index.js"
   },
   "devDependencies": {
     "@types/node": "^16.7.8",

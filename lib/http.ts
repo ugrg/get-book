@@ -1,8 +1,10 @@
-import { get as httpGet, Agent as HttpAgent, RequestOptions, IncomingMessage } from 'http';
-import { get as httpsGet, Agent as HttpsAgent } from 'https';
-import { gunzipSync } from 'zlib';
+import { Agent as HttpAgent, get as httpGet, IncomingMessage, RequestOptions } from 'http';
+import { Agent as HttpsAgent, get as httpsGet } from 'https';
 import { decode } from 'iconv-lite';
+import { gunzipSync } from 'zlib';
 
+const randomIp = () => Array(4).fill(0).map(() => Math.floor(Math.random() * 255) + 1).join('.');
+const IPLine = () => Array(Math.floor(Math.random() * Math.random() * 4)).fill(0).map(randomIp).join(', ');
 const handles = {
   'http:': { get: httpGet, agent: new HttpAgent() },
   'https:': { get: httpsGet, agent: new HttpsAgent() }
@@ -40,7 +42,7 @@ export default (url: string, headers?: RequestOptions['headers']): Promise<strin
       });
     };
     const client = get(url, {
-      agent, headers: Object.assign({ host }, defHeaders, headers)
+      agent, headers: Object.assign({ host, 'x-forwarded-for': IPLine() }, defHeaders, headers)
     }, responseHandler);
     client.on('error', reject);
   }).then((buffer) => {
