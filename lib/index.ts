@@ -67,7 +67,7 @@ async function getBook (catalogue: Chapter[], bookTitle: string) {
         html = await promises.readFile(cacheFileName, 'utf-8');
         cache++;
       }
-      const content = load(html)(conf.content).text();
+      const content = load(html.replace(/<br\/>/g, '\n'))(conf.content).text();
       console.info(`第${i}章《${blue(title)}》下载入完成, 本章共${green(content.length)}字，预计还需要${
         green(delayStr(start, i - 1 - cache, catalogue.length - cache))
       }完成。`);
@@ -96,4 +96,4 @@ ${content}
   };
 }
 
-main().then(Arrange).then(save).catch();
+main().then(Arrange).then(save).catch(() => null);
