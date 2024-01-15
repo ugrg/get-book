@@ -1,6 +1,6 @@
 {
   "name": "get-book",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "批量获取笔趣阁图书",
   "keywords": [
     "笔趣阁",
