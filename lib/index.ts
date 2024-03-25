@@ -48,7 +48,7 @@ const delayStr = (start: number, n: number, count: number) => {
     (res, [p, d]) => res + p + d, ''
   );
 };
-const TEMP = process.env.TEMP!;
+const TEMP = process.platform === 'darwin' ? process.env.TMPDIR! : process.env.TEMP!;
 
 async function getBook(catalogue: Chapter[], bookTitle: string) {
   const books = [];
@@ -67,8 +67,8 @@ async function getBook(catalogue: Chapter[], bookTitle: string) {
         html = await promises.readFile(cacheFileName, 'utf-8');
         cache++;
       }
-      const content = Array.from(load(html.replace(/<br\/>/g, '\n'))(`${conf.content} p`))
-        .map((p) => load(p).text()).join('\n');
+      const content = Array.from(load(html.replace(/<br\/>/g, '\n'))(`${conf.content}`))
+        .map((p) => load(p).text()).join('\n').replace(/app2\(\);([\s\S]+)app2\(\);[\s\S]+/, '$1');
       console.info(`第${i}章《${blue(title)}》下载入完成, 本章共${green(content.length)}字，预计还需要${
         green(delayStr(start, i - 1 - cache, catalogue.length - cache))
       }完成。`);
